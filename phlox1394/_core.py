@@ -27,20 +27,20 @@ Core functions of libdc1394.
 
 from __future__ import division, print_function, unicode_literals
 
-from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float
+from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void
 from ctypes.util import find_library
 from ctypes import POINTER as PTR
 
 from phlox1394._camera import camera_t, camera_list_t
-# from phlox1394._capture import *
-# from phlox1394._convesions import *
+from phlox1394._capture import capture_policy_t
+from phlox1394._convesions import color_filter_t, bayer_method_t
 from phlox1394._control import feature_t, featureset_t, feature_info_t, trigger_source_t
 from phlox1394._control import feature_modes_t, feature_mode_t, trigger_polarity_t, trigger_sources_t
 # from phlox1394._control import *
 # from phlox1394._format7 import *
 from phlox1394._log import err_val, error_t
-from phlox1394._types import bool_t, switch_t
-from phlox1394._video import video_modes_t
+from phlox1394._types import bool_t, switch_t, video_mode_t, video_modes_t
+from phlox1394._video import framerates_t, video_frame_t, framerate_t, operation_mode_t, iso_speed_t
 # import sys
 
 # REMINDER:
@@ -270,7 +270,7 @@ _dll.dc1394_feature_set_absolute_value.errcheck = _errcheck
 # The status of absolute control of a feature(ON/OFF): get/set
 _dll.dc1394_feature_get_absolute_control.argtypes = [PTR(camera_t), feature_t, PTR(switch_t)]
 _dll.dc1394_feature_get_absolute_control.restype = error_t
-_dll.dc1394_feature_get_absolute_control.errcheck = _errcheck
+_dll.dc1394_feature_get_absolute_control.errcheck = _errcheckp
 
 _dll.dc1394_feature_set_absolute_control.argtypes = [PTR(camera_t), feature_t, switch_t]
 _dll.dc1394_feature_set_absolute_control.restype = error_t
@@ -341,7 +341,7 @@ _dll.dc1394_pio_set.argtypes = [PTR(camera_t), c_uint32]
 _dll.dc1394_pio_set.restype = error_t
 _dll.dc1394_pio_set.errcheck = _errcheck
 
-# Gets the current quadlet at the PIO (input)
+# Gets the current quadlet at the PIO (input)p
 _dll.dc1394_pio_get.argtypes = [PTR(camera_t), PTR(c_uint32)]
 _dll.dc1394_pio_get.restype = error_t
 _dll.dc1394_pio_get.errcheck = _errcheck
@@ -386,5 +386,251 @@ _dll.dc1394_video_get_supported_framerates.argtypes = [PTR(camera_t), video_mode
 _dll.dc1394_video_get_supported_framerates.restype = error_t
 _dll.dc1394_video_get_supported_framerates.errcheck = _errcheck
 
-# Gets the current framerate. This is meaningful only if the video mode
-# is not scalable.
+# Gets the current framerate. This is meaningful only if
+# the video mode is not scalable.
+_dll.dc1394_video_get_framerate.argtypes = [PTR(camera_t), video_mode_t, PTR(framerates_t)]
+_dll.dc1394_video_get_framerate.restype = error_t
+_dll.dc1394_video_get_framerate.errcheck = _errcheck
+
+# Gets the current framerate. This is meaningful only if
+# the video mode is not scalable
+_dll.dc1394_video_get_framerate.argtypes = [PTR(camera_t), PTR(framerate_t)]
+_dll.dc1394_video_get_framerate.restype = error_t
+_dll.dc1394_video_get_framerate.errcheck = _errcheck
+
+# Sets the current framerate. This is meaningful only if
+# the video mode is not scalable
+_dll.dc1394_video_set_framerate.argtypes = [PTR(camera_t), framerate_t]
+_dll.dc1394_video_set_framerate.restype = error_t
+_dll.dc1394_video_set_framerate.errcheck = _errcheck
+
+# Gets the current vide mode
+_dll.dc1394_video_get_mode.argtypes = [PTR(camera_t), PTR(video_mode_t)]
+_dll.dc1394_video_get_mode.restype = error_t
+_dll.dc1394_video_get_mode.errcheck = _errcheck
+
+# Sets the current vide mode
+_dll.dc1394_video_set_mode.argtypes = [PTR(camera_t), video_mode_t]
+_dll.dc1394_video_set_mode.restype = error_t
+_dll.dc1394_video_set_mode.errcheck = _errcheck
+
+# Gets the current operation mode
+_dll.dc1394_video_get_operation_mode.argtypes = [PTR(camera_t), PTR(operation_mode_t)]
+_dll.dc1394_video_get_operation_mode.restype = error_t
+_dll.dc1394_video_get_operation_mode.errcheck = _errcheck
+
+# Sets the current operation mode
+_dll.dc1394_video_set_operation_mode.argtypes = [PTR(camera_t), operation_mode_t]
+_dll.dc1394_video_set_operation_mode.restype = error_t
+_dll.dc1394_video_set_operation_mode.errcheck = _errcheck
+
+# Gets the current ISO speed
+_dll.dc1394_video_get_iso_speed.argtypes = [PTR(camera_t), PTR(iso_speed_t)]
+_dll.dc1394_video_get_iso_speed.restype = error_t
+_dll.dc1394_video_get_iso_speed.errcheck = _errcheck
+
+# Sets the current ISO speed. Speeds over 400Mbps require 1394B
+_dll.dc1394_video_set_iso_speed.argtypes = [PTR(camera_t), iso_speed_t]
+_dll.dc1394_video_set_iso_speed.restype = error_t
+_dll.dc1394_video_set_iso_speed.errcheck = _errcheck
+
+# Gets the current ISO channel
+_dll.dc1394_video_get_iso_channel.argtypes = [PTR(camera_t), PTR(c_uint32)]
+_dll.dc1394_video_get_iso_channel.restype = error_t
+_dll.dc1394_video_get_iso_channel.errcheck = _errcheck
+
+# Sets the current ISO channel
+_dll.dc1394_video_set_iso_channel.argtypes = [PTR(camera_t), c_uint32]
+_dll.dc1394_video_set_iso_channel.restype = error_t
+_dll.dc1394_video_set_iso_channel.errcheck = _errcheck
+
+# Gets the current data depth, in bits. Only meaningful for
+# 16bpp video modes (RAW16, RGB48, MONO16,...)
+_dll.dc1394_video_get_data_depth.argtypes = [PTR(camera_t), PTR(c_uint32)]
+_dll.dc1394_video_get_data_depth.restype = error_t
+_dll.dc1394_video_get_data_depth.errcheck = _errcheck
+
+# Starts/stops the isochronous data transmission. In other words,
+# use this to control the image flow
+_dll.dc1394_video_set_transmission.argtypes = [PTR(camera_t), switch_t]
+_dll.dc1394_video_set_transmission.restypes = error_t
+_dll.dc1394_video_set_transmission.errcheck = _errcheck
+
+# Gets the status of the video transmission
+_dll.dc1394_video_get_transmission.argtypes = [PTR(camera_t), PTR(switch_t)]
+_dll.dc1394_video_get_transmission.restype = error_t
+_dll.dc1394_video_get_transmission.errcheck = _errcheck
+
+# Turns one-shot mode on or off
+_dll.dc1394_video_set_one_shot.argtype = [PTR(camera_t), switch_t]
+_dll.dc1394_video_set_one_shot.restype = error_t
+_dll.dc1394_video_set_one_shot.errcheck = _errcheck
+
+# Gets the status of the one-shot mode
+_dll.dc1394_video_get_one_shot.restype = error_t
+_dll.dc1394_video_get_one_shot.argtypes = [PTR(camera_t), PTR(bool_t)]
+_dll.dc1394_video_get_one_shot.errcheck = _errcheck
+
+# Turns multishot mode on or off
+_dll.dc1394_video_set_multi_shot.argtypes = [PTR(camera_t), c_uint32, switch_t]
+_dll.dc1394_video_set_multi_shot.restype = error_t
+_dll.dc1394_video_set_multi_shot.errcheck = _errcheck
+
+# Gets the status of the multi-shot mode
+_dll.dc1394_video_get_multi_shot.argtypes = [PTR(camera_t), PTR(bool_t), PTR(c_uint32)]
+_dll.dc1394_video_get_multi_shot.restype = error_t
+_dll.dc1394_video_get_multi_shot.errcheck = _errcheck
+
+# Gets the bandwidth usage of a camera.
+# This function returns the bandwidth that is used by the
+# camera *IF* ISO was ON. The returned value is in bandwidth units.
+# The 1394 bus has 4915 bandwidth units available per cycle. Each unit
+# corresponds to the time it takes to send one quadlet at ISO speed S1600.
+# The bandwidth usage at S400 is thus four times the number of quadlets per
+# packet. Thanks to Krisitian Hogsberg for clarifying this.
+_dll.dc1394_video_get_bandwidth_usage.argtypes = [PTR(camera_t), PTR(c_uint32)]
+_dll.dc1394_video_get_bandwidth_usage.restype = error_t
+_dll.dc1394_video_get_bandwidth_usage.errcheck = _errcheck
+
+
+# ----------------------- Capture functions: capture.h ------------------------
+# Setup the capture, using a ring buffer of a certain size (num_dma_buffers)
+# and certain options (flags)
+_dll.dc1394_capture_setup.argtypes = [PTR(camera_t), c_uint32, c_uint32]
+_dll.dc1394_capture_setup.restype = error_t
+_dll.dc1394_capture_setup.errcheck = _errcheck
+
+# Stop the capture
+_dll.dc1394_capture_stop.argtypes = [PTR(camera_t)]
+_dll.dc1394_capture_stop.restype = error_t
+_dll.dc1394_capture_stop.errcheck = _errcheck
+
+# Gets a file descriptor to be used for select(). Must be called
+# after dc1394_capture_setup()
+# Error check can do nothing with this one;
+# we also do not really need this, since we do not want to dump files
+# from the C library.p
+_dll.dc1394_capture_get_fileno.argtypes = [PTR(camera_t)]
+_dll.dc1394_capture_get_fileno.restype = c_int
+
+# Captures a video frame. The returned struct contains the image buffer,
+# among others. This image buffer SHALL NOT be freed, as it represents an area
+# in the memory that belongs to the system.
+_dll.dc1394_capture_dequeue.argtypes = [PTR(camera_t), capture_policy_t, PTR(PTR(video_frame_t))]
+_dll.dc1394_capture_dequeue.restype = error_t
+_dll.dc1394_capture_dequeue.errcheck = _errcheck
+
+# Returns a frame to the ring buffer once it has been used.
+_dll.dc1394_capture_enqueue.argtypes = [PTR(camera_t), PTR(video_frame_t)]
+_dll.dc1394_capture_enqueue.restype = error_t
+_dll.dc1394_capture_enqueue.errcheck = _errcheck
+
+# Returns DC1394_TRUE if the given frame (previously dequeued) has been
+# detected to be corrupt (missing data, corrupted data, overrun buffer, etc.).
+# Note that certain types of corruption may go undetected in which case
+# DC1394_FALSE will be returned.  The ability to detect corruption also varies
+# between platforms.  Note that corrupt frames still need to be enqueued with
+# dc1394_capture_enqueue() when no longer needed by the user.
+_dll.dc1394_capture_is_frame_corrupt.argtypes = [PTR(camera_t), PTR(video_frame_t)]
+_dll.dc1394_capture_is_frame_corrupt.restype = bool_t
+
+# Set a callback if supported by the platform (OS X only for now).
+_dll.dc1394_capture_set_callback.argtypes = [PTR(camer_t), capture_callback_t, c_void_p]
+_dll.dc1394_capture_set_callback.restype = c_void
+
+
+# ----------------------- Conversion functions: conversions.h -----------------
+# ---- Conversion functions to YUV422, MONO8 and RGB8 ----
+# Converts an image buffer to YUV422
+# parameters: *src, *dest, width, height, byte_order, source_coding, bits
+_dll.dc1394_convert_to_YUV422.argtypes = [PTR(c_uint8), PTR(c_uint8), c_uint32,
+                                          c_uint32, c_uint32, color_coding_t, c_uint32]
+_dll.dc1394_convert_to_YUV422.restype = error_t
+_dll.dc1394_convert_to_YUV422.errcheck = _errcheck
+
+# Converts an image buffer to MONO8
+_dll.dc1394_convert_to_MONO8.argtypes = [PTR(c_uint8), PTR( c_uint8), c_uint32,
+                                        c_uint32, c_uint32, color_coding_t, c_uint32]
+_dll.dc1394_convert_to_MONO8.restype = error_t
+_dll.dc1394_convert_to_MONO8.errcheck = _errcheck
+
+# Converts an image buffer to RGB8
+_dll.dc1394_convert_to_RGB8.argtypes = [PTR(c_uint8), PTR(c_uint8), c_uint32,
+                                        c_uint32, c_uint32, color_coding_t, c_uint32 ]
+_dll.dc1394_convert_to_RGB8.restype = error_t
+_dll.dc1394_convert_to_RGB8.errcheck = _errcheck
+
+
+# ---- Conversion functions for stereo images
+# changes a 16bit stereo image (8bit/channel) into two 8bit images on top
+# of each other
+_dll.dc1394_deinterlace_stereo.argtypes = [PTR(c_uint8), PTR(c_uint8), c_uint32, c_uint32]
+_dll.dc1394_deinterlace_stereo.restype = error_t
+_dll.dc1394_deinterlace_stereo.errcheck = _errcheck
+
+
+# Color conversion functions for cameras that can output raw Bayer pattern
+# images(color codings DC1394_COLOR_CODING_RAW8 and DC1394_COLOR_CODING_RAW16).
+#
+# Credits and sources:
+# - Nearest Neighbor: OpenCV library
+# - Bilinear: OpenCV library
+# - HQLinear: High-Quality Linear Interpolation For Demosaicing Of
+#             Bayer-Patterned Color Images, by Henrique S. Malvar, Li-wei He,
+#             and Ross Cutler, in Proceedings of the ICASSP'04 Conference.
+# - Edge Sense II: Laroche, Claude A. "Apparatus and method for adaptively
+#                  interpolating a full color image utilizing chrominance
+#                  gradients" U.S. Patent 5,373,322. Based on the code found
+#                  on the website http://www-ise.stanford.edu/~tingchen/
+#                  Converted to C and adapted to all four elementary patterns.
+# - Downsample: "Known to the Ancients"
+# - Simple: Implemented from the information found in the manual of
+#           Allied Vision Technologies (AVT) cameras.
+# - VNG: Variable Number of Gradients, a method described in
+#        http://www-ise.stanford.edu/~tingchen/algodep/vargra.html
+#        Sources import from DCRAW by Frederic Devernay. DCRAW is a RAW
+#        converter program by Dave Coffin. URL:
+#        http://www.cybercom.net/~dcoffin/dcraw/
+# - AHD: Adaptive Homogeneity-Directed Demosaicing Algorithm, by K. Hirakawa
+#        and T.W. Parks, IEEE Transactions on Image Processing, Vol. 14, Nr. 3,
+#        March 2005, pp. 360 - 369.
+
+# Perform de-mosaicing on an 8-bit image buffer
+# parameters: uint16_t *bayer, uint16_t *rgb, uint32_t width, uint32_t height,
+# color_filter_t tile, bayer_method_t method
+_dll.dc1394_bayer_decoding_8bit.argtypes = [PTR(c_uint8), PTR(c_uint8), c_uint32,
+                                            c_uint32, color_filter_t, bayer_method_t]
+_dll.dc1394_bayer_decoding_8bit.restype = error_t
+_dll.dc1394_bayer_decoding_8bit.errcheck = _errcheck
+
+
+# Perform de-mosaicing on an 16-bit image buffer
+# parameters: uint16_t *bayer, uint16_t *rgb, uint32_t width, uint32_t height,
+# color_filter_t tile, bayer_method_t method, uint32_t bits
+_dll.dc1394_bayer_decoding_16bit.argtypes = [PTR(c_uint8), PTR(c_uint8), c_uint32,
+                                             c_uint32, color_filter_t, bayer_method_t, c_uint32 ]
+_dll.dc1394_bayer_decoding_16bit.restype = error_t
+_dll.dc1394_bayer_decoding_16bit.errcheck = _errcheck
+
+# ---- Frame based conversions ----
+# Converts the format of a video frame.
+# To set the format of the output, simply set the values of the corresponding
+# fields in the output frame
+# parameters: inframe and outframe
+_dll.dc1394_convert_frames.argtypes = [PTR(video_frame_t), PTR(video_frame_t)]
+_dll.dc1394_convert_frames.restype = error_t
+_dll.dc1394_convert_frames.errcheck = _errcheck
+
+# De-mosaicing of a Bayer-encoded video frame
+# To set the format of the output, simply set the values of the corresponding
+# fields in the output frame
+_dll.dc1394_debayer_frames.argtypes = [PTR(video_frame_t), PTR(video_frame_t), bayer_method_t]
+_dll.dc1394_debayer_frames.restype = error_t
+_dll.dc1394_debayer_frames.errcheck = _errcheck
+
+# De-interlacing of stereo data for cideo frames
+# To set the format of the output, simply set the values of the corresponding
+# fields in the output frame
+_dll.dc1394_deinterlace_stereo_frames.argtypes = [PTR(video_frame_t), PTR(video_frame_t), stereo_method_t]
+_dll.dc1394_deinterlace_stereo_frames.restype = error_t
+_dll.dc1394_deinterlace_stereo_frames.errcheck = _errcheck
