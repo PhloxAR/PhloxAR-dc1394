@@ -634,3 +634,6 @@ _dll.dc1394_debayer_frames.errcheck = _errcheck
 _dll.dc1394_deinterlace_stereo_frames.argtypes = [PTR(video_frame_t), PTR(video_frame_t), stereo_method_t]
 _dll.dc1394_deinterlace_stereo_frames.restype = error_t
 _dll.dc1394_deinterlace_stereo_frames.errcheck = _errcheck
+
+
+# ----------------------- Register functions: register.h ----------------------
