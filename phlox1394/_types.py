@@ -28,7 +28,25 @@ A few type definitions.
 from __future__ import unicode_literals
 from ctypes import c_int, c_uint32, Structure
 
+
 # --------------------------------- enums ------------------------------------
+# def enum(seq, start=0):
+#     n = start
+#     enums = {}
+#     if isinstance(seq, list):
+#         for elem in seq:
+#             enums[elem] = n
+#             n += 1
+#     elif isinstance(seq, dict):
+#         enums = seq
+#     return type('Enum', (), enums)
+
+
+def invert(to):
+    tmp = {}
+    for i, j in to.items():
+        tmp[j] = i
+    return tmp
 
 # Enumeration of video modes.
 # Note that the notion of IIDC "format" is not present here, except in the

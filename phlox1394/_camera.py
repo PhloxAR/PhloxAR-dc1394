@@ -24,7 +24,6 @@
 from __future__ import unicode_literals
 from ctypes import c_int, c_uint16, c_uint32, c_uint64, c_char_p
 from ctypes import POINTER, Structure
-
 from phlox1394._types import VIDEO_MODE_FORMAT7_NUM, bool_t
 
 # List of IIDC versions.
