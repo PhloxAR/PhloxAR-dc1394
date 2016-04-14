@@ -38,7 +38,7 @@ from phlox1394._control import feature_t, featureset_t, feature_info_t, trigger_
 from phlox1394._control import feature_modes_t, feature_mode_t, trigger_polarity_t, trigger_sources_t
 # from phlox1394._control import *
 from phlox1394._format7 import format7mode_t, format7modeset_t
-from phlox1394._log import err_val, error_t
+from phlox1394._log import err_val, error_t, log_t
 from phlox1394._types import bool_t, switch_t, video_mode_t, video_modes_t, color_coding_t
 from phlox1394._video import framerates_t, video_frame_t, framerate_t, operation_mode_t, iso_speed_t
 # import sys
@@ -1014,3 +1014,45 @@ _dll.dc1394_iso_release_bandwidth.errcheck = _errcheck
 _dll.dc1394_iso_release_all.argtypes = [PTR(camera_t)]
 _dll.dc1394_iso_release_all.restype = error_t
 _dll.dc1394_iso_release_all.errcheck = _errcheck
+
+
+# ---------------------------- Log functions: log.h ---------------------------
+# dc1394_log_register_handler: register log handler for reporting error,
+# warning or debug statements. Passing NULL as argument turns off this log
+# level.
+# params: &log_handler, type_of_the_log, message_type, log_message
+_dll.dc1394_log_register_handler.argtypes = [log_t, c_void_p, c_void_p]
+_dll.dc1394_log_register_handler.restype = error_t
+_dll.dc1394_log_register_handler.errcheck = _errcheck
+
+# dc1394_log_set_default_handler: set the log handler to the default handler
+# At boot time, debug logging is OFF (handler is NULL). Using this function
+# for the debug statements will start logging of debug statements usng the
+# default handler.
+_dll.dc1394_log_set_default_handler.argtypes = [log_t]
+_dll.dc1394_log_set_default_handler.restype = error_t
+_dll.dc1394_log_set_default_handler.errcheck = _errcheck
+
+# dc1394_log_error: logs a fatal error condition to the registered facility
+# This function shall be invoked if a fatal error condition is encountered.
+# The message passed as argument is delivered to the registered error
+# reporting function registered before.
+# param [in] format,...: error message to be logged, multiple arguments
+# allowed (printf style)
+_dll.dc1394_log_error.restype = None
+_dll.dc1394_log_error.argtypes = [c_char_p]
+
+# dc1394_log_warning: logs a nonfatal error condition to the registered
+# facility This function shall be invoked if a nonfatal error condition is
+# encountered. The message passed as argument is delivered to the registered
+# warning reporting function registered before.
+_dll.dc1394_log_warning.restype = None
+_dll.dc1394_log_warning.argtypes = [c_char_p]
+
+# dc1394_log_debug: logs a debug statement to the registered facility
+# This function shall be invoked if a debug statement is to be logged.
+# The message passed as argument is delivered to the registered debug
+# reporting function registered before ONLY IF the environment variable
+# DC1394_DEBUG has been set before the program starts.
+_dll.dc1394_log_debug.restype = None
+_dll.dc1394_log_debug.argtypes = [c_char_p]
