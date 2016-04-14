@@ -27,11 +27,11 @@ Core functions of libdc1394.
 
 from __future__ import division, print_function, unicode_literals
 
-from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void, c_uint, c_int32
+from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void, c_uint, c_int32, c_char_p, c_uint8, c_uint16
 from ctypes.util import find_library
 from ctypes import POINTER as PTR
 
-from phlox1394._camera import camera_t, camera_list_t
+from phlox1394._camera import camera_t, camera_list_t, camera_id_t
 from phlox1394._capture import capture_policy_t
 from phlox1394._convesions import color_filter_t, bayer_method_t
 from phlox1394._control import feature_t, featureset_t, feature_info_t, trigger_source_t
@@ -858,3 +858,75 @@ _dll.dc1394_format7_get_roi.argtypes = [PTR(camera_t), video_mode_t,
                                         PTR(c_uint32), PTR(c_uint32)]
 _dll.dc1394_format7_get_roi.restype = error_t
 _dll.dc1394_format7_get_roi.errcheck = _errcheck
+
+
+# ----------------------------- utilities: utils.h ----------------------------
+
+# Returns the image width and height (in pixels) corresponding to a video mode.
+# Works for scalable and non-scalable video modes.
+# parameters: &camera, video_mode, &width, &height
+_dll.dc1394_get_image_size_from_video_mode.argtypes = [PTR(camera_t),
+                                                       video_mode_t,
+                                                       PTR(c_int32),
+                                                       PTR(c_int32)]
+_dll.dc1394_get_image_size_from_video_mode.restype = error_t
+_dll.dc1394_get_image_size_from_video_mode.errcheck = _errcheck
+
+# Returns the given framerate as a float
+_dll.dc1394_framerate_as_float.argtypes = [framerate_t, PTR(c_float)]
+_dll.dc1394_framerate_as_float.restype = error_t
+_dll.dc1394_framerate_as_float.errcheck = _errcheck
+
+# Returns the number of bits per pixel for a certain color coding. This is
+# the size of the data sent on the bus, the effective data depth may vary.
+# Example: RGB16 is 16, YUV411 is 8, YUV422 is 8
+_dll.dc1394_get_color_coding_data_depth.argtypes = [color_coding_t, PTR(c_uint32)]
+_dll.dc1394_get_color_coding_data_depth.restype = error_t
+_dll.dc1394_get_color_coding_data_depth.errcheck = _errcheck
+
+# Returns the bit-space used by a pixel. This is different from the data depth!
+# For instance, RGB16 has a bit space of 48 bits, YUV422 is 16bits and
+# YU411 is 12bits.
+_dll.dc1394_get_color_coding_bit_size.argtypes = [color_coding_t, PTR(c_uint32)]
+_dll.dc1394_get_color_coding_bit_size.restype = error_t
+_dll.dc1394_get_color_coding_bit_size.errcheck = _errcheck
+
+# Returns the color coding from the video mode. Works with scalable
+# image formats too.
+_dll.dc1394_get_color_coding_from_video_mode.argtypes = [PTR(camera_t),
+                                                         video_mode_t,
+                                                         PTR(color_coding_t)]
+_dll.dc1394_get_color_coding_from_video_mode.restype = error_t
+_dll.dc1394_get_color_coding_from_video_mode.errcheck = _errcheck
+
+# Tells whether the color mode is color or monochrome
+_dll.dc1394_is_color.argtypes = [color_coding_t, PTR(bool_t)]
+_dll.dc1394_is_color.restype = error_t
+_dll.dc1394_is_color.errcheck = _errcheck
+
+# Tells whether the video mode is scalable or not.
+_dll.dc1394_is_video_mode_scalable.argtypes = [video_mode_t]
+_dll.dc1394_is_video_mode_scalable.restype = bool_t
+
+# Tells whether the video mode is "still image" or not ("still image" is
+# currently not supported by any cameras on the market)
+_dll.dc1394_is_video_mode_still_image.argtypes = [video_mode_t]
+_dll.dc1394_is_video_mode_still_image.restype = bool_t
+
+# Tells whether two IDs refer to the same physical camera unit.
+_dll.dc1394_is_same_camera.argtypes = [camera_id_t, camera_id_t]
+_dll.dc1394_is_same_camera.restype = bool_t
+
+# Returns a descriptive name for a feature
+_dll.dc1394_feature_get_string.argtypes = [feature_t]
+_dll.dc1394_feature_get_string.restype = c_char_p
+
+# Returns a descriptive string for an error code
+_dll.dc1394_error_get_string.argtypes = [error_t]
+_dll.dc1394_error_get_string.restype = c_char_p
+
+# Calculates the CRC16 checksum of a memory region. Useful to verify the CRC of
+# an image buffer, for instance.
+# parameters: &buffer, buffer_size
+_dll.dc1394_checksum_crc16.argtypes = [PTR(c_uint8), c_uint32]
+_dll.dc1394_checksum_crc16.restype = c_uint16
