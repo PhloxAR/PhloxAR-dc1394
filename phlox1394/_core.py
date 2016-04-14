@@ -26,22 +26,17 @@ Core functions of libdc1394.
 """
 
 from __future__ import division, print_function, unicode_literals
-
-from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void, c_uint, c_int32, c_char_p, c_uint8, c_uint16
+from ctypes import *
 from ctypes.util import find_library
 from ctypes import POINTER as PTR
-
-from phlox1394._camera import camera_t, camera_list_t, camera_id_t
-from phlox1394._capture import capture_policy_t
-from phlox1394._convesions import color_filter_t, bayer_method_t
-from phlox1394._control import feature_t, featureset_t, feature_info_t, trigger_source_t
-from phlox1394._control import feature_modes_t, feature_mode_t, trigger_polarity_t, trigger_sources_t
-# from phlox1394._control import *
-from phlox1394._format7 import format7mode_t, format7modeset_t
-from phlox1394._log import err_val, error_t, log_t
-from phlox1394._types import bool_t, switch_t, video_mode_t, video_modes_t, color_coding_t
-from phlox1394._video import framerates_t, video_frame_t, framerate_t, operation_mode_t, iso_speed_t
-# import sys
+from phlox1394._camera import *
+from phlox1394._capture import *
+from phlox1394._convesions import *
+from phlox1394._control import *
+from phlox1394._format7 import *
+from phlox1394._log import *
+from phlox1394._types import *
+from phlox1394._video import *
 
 # REMINDER:
 #  By default the ctypes API does not know or care about how a dll function

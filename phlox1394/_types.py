@@ -210,3 +210,5 @@ class video_modes_t(Structure):
 
 bool_t = c_int
 switch_t = c_int
+
+del invert
