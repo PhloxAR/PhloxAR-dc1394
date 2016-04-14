@@ -26,7 +26,7 @@ Functions to control Format_7 (aka scalable format, ROI)
 """
 
 from __future__ import unicode_literals
-from ctypes import c_int, c_uint32, c_uint64, Structure
+from ctypes import c_uint32, c_uint64, Structure
 from phlox1394._types import bool_t, color_coding_t, color_codings_t, color_filter_t
 from phlox1394._types import VIDEO_MODE_FORMAT7_NUM
 
@@ -71,7 +71,7 @@ class format7mode_t(Structure):
 
 
 # A struct containing the list of Format_7 modes.
-class fromat7modeset_t(Structure):
+class format7modeset_t(Structure):
     _fields_ = [
         ('mode', (format7mode_t) * VIDEO_MODE_FORMAT7_NUM),
     ]

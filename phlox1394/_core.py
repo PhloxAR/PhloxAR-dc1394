@@ -27,7 +27,7 @@ Core functions of libdc1394.
 
 from __future__ import division, print_function, unicode_literals
 
-from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void, c_uint
+from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void, c_uint, c_int32
 from ctypes.util import find_library
 from ctypes import POINTER as PTR
 
@@ -37,9 +37,9 @@ from phlox1394._convesions import color_filter_t, bayer_method_t
 from phlox1394._control import feature_t, featureset_t, feature_info_t, trigger_source_t
 from phlox1394._control import feature_modes_t, feature_mode_t, trigger_polarity_t, trigger_sources_t
 # from phlox1394._control import *
-# from phlox1394._format7 import *
+from phlox1394._format7 import format7mode_t, format7modeset_t
 from phlox1394._log import err_val, error_t
-from phlox1394._types import bool_t, switch_t, video_mode_t, video_modes_t
+from phlox1394._types import bool_t, switch_t, video_mode_t, video_modes_t, color_coding_t
 from phlox1394._video import framerates_t, video_frame_t, framerate_t, operation_mode_t, iso_speed_t
 # import sys
 
@@ -711,4 +711,150 @@ _dll.dc1394_set_strobe_register.restype = error_t
 _dll.dc1394_set_strobe_register.errcheck = _errcheck
 
 
-# --------------------------- Format 7 functions ------------------------------
+# ----------------- Format_7 (scalable image format) functions ----------------
+
+# Gets the maximal image size for a given mode.
+# parameters: *camera, video_mode, *h_size, *v_size:
+_dll. dc1394_format7_get_max_image_size.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32), PTR(c_uint32)]
+_dll. dc1394_format7_get_max_image_size.restype = error_t
+_dll. dc1394_format7_get_max_image_size.errcheck = _errcheck
+
+# Gets the unit sizes for a given mode. The image size can only be a multiple
+# of the unit size, and cannot be smaller than it.
+# parameters: *camera, video_mode, *h_unit, *v_unit
+_dll.dc1394_format7_get_unit_size.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32), PTR(c_uint32)]
+_dll.dc1394_format7_get_unit_size.restype = error_t
+_dll.dc1394_format7_get_unit_size.errcheck = _errcheck
+
+# Gets the current image size
+_dll.dc1394_format7_get_image_size.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32), PTR(c_uint32)]
+_dll.dc1394_format7_get_image_size.restype = error_t
+_dll.dc1394_format7_get_image_size.errcheck = _errcheck
+
+# Sets the current image size
+_dll.dc1394_format7_set_image_size.argtypes = [PTR(camera_t), video_mode_t, c_uint32, c_uint32]
+_dll.dc1394_format7_set_image_size.restype = error_t
+_dll.dc1394_format7_set_image_size.errcheck = _errcheck
+
+# Gets the current image position
+# parameters: *camera, video_mode, *left, *top
+_dll.dc1394_format7_get_image_position.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32), PTR(c_uint32)]
+_dll.dc1394_format7_get_image_position.restype = error_t
+_dll.dc1394_format7_get_image_position.errcheck = _errcheck
+
+# Sets the current image position
+_dll.dc1394_format7_set_image_position.argtypes = [PTR(camera_t), video_mode_t, c_uint32, c_uint32]
+_dll.dc1394_format7_set_image_position.restype = error_t
+_dll.dc1394_format7_set_image_position.errcheck = _errcheck
+
+# Gets the unit positions for a given mode. The image position can
+# only be a multiple of the unit position (zero is acceptable).
+# parameters: *camera, video_mode, *h_unit, *v_unit
+_dll.dc1394_format7_get_unit_position.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32), PTR(c_uint32)]
+_dll.dc1394_format7_get_unit_position.restype = error_t
+_dll.dc1394_format7_get_unit_position.errcheck = _errcheck
+
+# Gets the current color coding
+_dll.dc1394_format7_get_color_coding.argtypes = [PTR(camera_t), video_mode_t, PTR(color_coding_t)]
+_dll.dc1394_format7_get_color_coding.restype = error_t
+_dll.dc1394_format7_get_color_coding.errcheck = _errcheck
+
+# Gets the list of color codings available for this mode
+_dll.dc1394_format7_get_color_codings.argtypes = [PTR(camera_t), video_mode_t, PTR(color_codings_t)]
+_dll.dc1394_format7_get_color_codings.restype = error_t
+_dll.dc1394_format7_get_color_codings.errcheck = _errcheck
+
+# Sets the current color coding
+_dll.dc1394_format7_set_color_coding.argtypes = [PTR(camera_t), video_mode_t, color_coding_t]
+_dll.dc1394_format7_set_color_coding.restype = error_t
+_dll.dc1394_format7_set_color_coding.errcheck = _errcheck
+
+# Gets the current color filter
+_dll.dc1394_format7_get_color_filter.argtypes = [PTR(camera_t), video_mode_t, PTR(color_filter_t)]
+_dll.dc1394_format7_get_color_filter.restype = error_t
+_dll.dc1394_format7_get_color_filter.errcheck = _errcheck
+
+# Get the parameters of the packet size: its maximal size and its unit size.
+# The packet size is always a multiple of the unit bytes and cannot be zero.
+# parameters: *camera, video_mode, *unit_bytes, *max_bytes
+_dll.dc1394_format7_get_packet_parameters.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32), PNTR(c_uint32)]
+_dll.dc1394_format7_get_packet_parameters.restype = error_t
+_dll.dc1394_format7_get_packet_parameters.errcheck = _errcheck
+
+# Gets the current packet size
+# parameters: *camera, video_mode, *packet_size
+_dll.dc1394_format7_get_packet_size.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32)]
+_dll.dc1394_format7_get_packet_size.restype = error_t
+_dll.dc1394_format7_get_packet_size.errcheck = _errcheck
+
+# Sets the current packet size
+_dll.dc1394_format7_set_packet_size.argtypes = [PTR(camera_t), video_mode_t, c_uint32]
+_dll.dc1394_format7_set_packet_size.restype = error_t
+_dll.dc1394_format7_set_packet_size.errcheck = _errcheck
+
+# Gets the recommended packet size. Ignore if zero.
+# parameters: &camera, video_mode, &packet size
+_dll.dc1394_format7_get_recommended_packet_size.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32)]
+_dll.dc1394_format7_get_recommended_packet_size.restype = error_t
+_dll.dc1394_format7_get_recommended_packet_size.errcheck = _errcheck
+
+# Gets the number of packets per frame.
+# parameters: &camera, video_mode, &packets per frame
+_dll.dc1394_format7_get_packets_per_frame.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32)]
+_dll.dc1394_format7_get_packets_per_frame.restype = error_t
+_dll.dc1394_format7_get_packets_per_frame.errcheck = _errcheck
+
+# Gets the data depth (e.g. 12, 13, 14 bits/pixel)
+# parameters: &camera, video_mode, &data_depth
+_dll.dc1394_format7_get_data_depth.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint32)]
+_dll.dc1394_format7_get_data_depth.restype = error_t
+_dll.dc1394_format7_get_data_depth.errcheck = _errcheck
+
+# Gets the frame interval in float format
+# parameters: &camera, video_mode, &interval
+_dll.dc1394_format7_get_frame_interval.argtypes = [PTR(camera_t), video_mode_t, PTR(c_float)]
+_dll.dc1394_format7_get_frame_interval.restype = error_t
+_dll.dc1394_format7_get_frame_interval.errcheck = _errcheck
+
+# Gets the number of pixels per image frame
+# parameters: &camera, video_mode, &pixnum
+_dll.dc1394_format7_get_pixel_number.restype = error_t
+_dll.dc1394_format7_get_pixel_number.argtypes = [ POINTER(camera_t), video_mode_t,\
+                                            POINTER( c_uint32 ) ]
+_dll.dc1394_format7_get_pixel_number.errcheck = _errcheck
+
+# Get the total number of bytes per frame. This includes padding
+# (to reach an entire number of packets)
+# parameters: &camera, video_mode, &total_bytes
+_dll.dc1394_format7_get_total_bytes.argtypes = [PTR(camera_t), video_mode_t, PTR(c_uint64)]
+_dll.dc1394_format7_get_total_bytes.restype = error_t
+_dll.dc1394_format7_get_total_bytes.errcheck = _errcheck
+
+# These functions get the properties of (one or all) format7 mode(s)
+# Gets the properties of all Format_7 modes supported by the camera.
+_dll.dc1394_format7_get_modeset.argtypes = [PTR(camera_t), PTR(format7modeset_t)]
+_dll.dc1394_format7_get_modeset.restype = error_t
+_dll.dc1394_format7_get_modeset.errcheck = _errcheck
+
+# Gets the properties of a Format_7 mode
+_dll.dc1394_format7_get_mode_info.argtypes = [PTR(camera_t), video_mode_t,PTR(format7mode_t)]
+_dll.dc1394_format7_get_mode_info.restype = error_t
+_dll.dc1394_format7_get_mode_info.errcheck = _errcheck
+
+# Joint function that fully sets a certain ROI taking all parameters
+# into account. Note that this function does not SWITCH to the video mode
+# passed as argument, it mearly sets it
+# parameters: &camera, video_mode, color_coding, packet_size,
+#             left, top, width, height
+_dll.dc1394_format7_set_roi.argtypes = [PTR(camera_t), video_mode_t,
+                                        color_coding_t, c_int32, c_int32,
+                                        c_int32, c_int32, c_int32]
+_dll.dc1394_format7_set_roi.restype = error_t
+_dll.dc1394_format7_set_roi.errcheck = _errcheck
+
+_dll.dc1394_format7_get_roi.argtypes = [PTR(camera_t), video_mode_t,
+                                        PTR(color_coding_t), PTR(c_uint32),
+                                        PTR(c_uint32), PTR(c_uint32),
+                                        PTR(c_uint32), PTR(c_uint32)]
+_dll.dc1394_format7_get_roi.restype = error_t
+_dll.dc1394_format7_get_roi.errcheck = _errcheck
