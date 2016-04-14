@@ -27,7 +27,7 @@ Core functions of libdc1394.
 
 from __future__ import division, print_function, unicode_literals
 
-from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void
+from ctypes import cdll, c_void_p, c_int, c_uint32, c_uint64, c_float, c_void, c_uint
 from ctypes.util import find_library
 from ctypes import POINTER as PTR
 
@@ -637,3 +637,78 @@ _dll.dc1394_deinterlace_stereo_frames.errcheck = _errcheck
 
 
 # ----------------------- Register functions: register.h ----------------------
+# parameters: *camera, offset, *value, num_register
+_dll.dc1394_get_registers.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32), c_uint32]
+_dll.dc1394_get_registers.restype = error_t
+_dll.dc1394_get_registers.errcheck = _errcheck
+
+_dll.dc1394_get_register.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32)]
+_dll.dc1394_get_register.restype = error_t
+_dll.dc1394_get_register.errcheck = _errcheck
+
+_dll.dc1394_set_registers.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32), c_uint32]
+_dll.dc1394_set_registers.restype = error_t
+_dll.dc1394_set_registers.errcheck = _errcheck
+
+_dll.dc1394_set_register.argtypes = [PTR(camera_t), c_uint64, c_uint32]
+_dll.dc1394_set_register.restype = error_t
+_dll.dc1394_set_register.errcheck = _errcheck
+
+_dll.dc1394_get_adv_control_registers.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32), c_uint32]
+_dll.dc1394_get_adv_control_registers.restype = error_t
+_dll.dc1394_get_adv_control_registers.errcheck = _errcheck
+
+_dll.dc1394_get_adv_control_register.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32)]
+_dll.dc1394_get_adv_control_register.restype = error_t
+_dll.dc1394_get_adv_control_register = _errcheck
+
+_dll.dc1394_set_adv_control_registers.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32), c_uint32]
+_dll.dc1394_set_adv_control_registers.restype = error_t
+_dll.dc1394_set_adv_control_registers.errcheck = _errcheck
+
+_dll.dc1394_set_adv_control_register.argtypes = [PTR(camera_t), c_uint64, c_uint32]
+_dll.dc1394_set_adv_control_register.restype = error_t
+_dll.dc1394_set_adv_control_register.errcheck = _errcheck
+
+# ---- Get/set format_7 registers ----
+# parameters: *camera, mode, offset, *value:
+_dll.dc1394_get_format7_register.argtypes = [PTR(camera_t), c_uint, c_uint64, PTR(c_uint32)]
+_dll.dc1394_get_format7_register.restype = error_t
+_dll.dc1394_get_format7_register.errcheck = _errcheck
+
+_dll.dc1394_set_format7_register.argtypes = [PTR(camera_t), c_uint, c_uint64, c_uint32]
+_dll.dc1394_set_format7_register.restype = error_t
+_dll.dc1394_set_format7_register.errcheck = _errcheck
+
+# ---- Get/set absolute control registers ----
+# parameters *camera, feature, offset, *value
+_dll.dc1394_get_absolute_register.argtypes = [PTR(camera_t), c_uint, c_uint64, PTR(c_uint32)]
+_dll.dc1394_get_absolute_register.restype = error_t
+_dll.dc1394_get_absolute_register.errcheck = _errcheck
+
+_dll.dc1394_set_absolute_register.restype = error_t
+_dll.dc1394_set_absolute_register.argtypes = [PTR(camera_t), c_uint, c_uint64, c_uint32]
+_dll.dc1394_set_absolute_register.errcheck = _errcheck
+
+# ---- Get/set PIO feature registers ----
+# parameters: *camera, offset, *value
+_dll.dc1394_get_PIO_register.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32)]
+_dll.dc1394_get_PIO_register.restype = error_t
+_dll.dc1394_get_PIO_register.errcheck = _errcheck
+
+_dll.dc1394_set_PIO_register.argtypes = [PTR(camera_t), c_uint64, c_uint32]
+_dll.dc1394_set_PIO_register.restype = error_t
+_dll.dc1394_set_PIO_register.errcheck = _errcheck
+
+# Get/Set Strobe Feature Registers
+# parameters: *camera, offset, *value
+_dll.dc1394_get_strobe_register.argtypes = [PTR(camera_t), c_uint64, PTR(c_uint32)]
+_dll.dc1394_get_strobe_register.restype = error_t
+_dll.dc1394_get_strobe_register.errcheck = _errcheck
+
+_dll.dc1394_set_strobe_register.argtypes = [PTR(camera_t), c_uint64, c_uint32]
+_dll.dc1394_set_strobe_register.restype = error_t
+_dll.dc1394_set_strobe_register.errcheck = _errcheck
+
+
+# --------------------------- Format 7 functions ------------------------------
