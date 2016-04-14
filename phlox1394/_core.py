@@ -930,3 +930,87 @@ _dll.dc1394_error_get_string.restype = c_char_p
 # parameters: &buffer, buffer_size
 _dll.dc1394_checksum_crc16.argtypes = [PTR(c_uint8), c_uint32]
 _dll.dc1394_checksum_crc16.restype = c_uint16
+
+
+# -------------- ISO resources (channels and bandwidth)functions --------------
+
+# dc1394_iso_set_persist
+# param camera A camera handle.
+# Calling this function will cause isochronous channel and bandwidth
+# allocations to persist beyond the lifetime of this dc1394camera_t instance.
+# Normally (when this function is not called), any allocations would be
+# automatically released upon freeing this camera or a premature shutdown of
+# the application (if possible).  For this function to be used, it
+# must be called prior to any allocations or an error will be returned.
+_dll.dc1394_iso_set_persist.argtypes = [PTR(camera_t)]
+_dll.dc1394_iso_set_persist.restype = error_t
+_dll.dc1394_iso_set_persist.errcheck = _errcheck
+
+# dc1394_iso_allocate_channel:
+# param &camera , channels_allowed, &channel
+# channels_allowed: A bitmask of acceptable channels for the allocation.
+# The LSB corresponds to channel 0 and the MSB corresponds to channe 63.
+# Only channels whose bit is set will be considered for the allocation
+# If \a channels_allowed = 0, the complete set of channels supported by this
+# camera will be considered for the allocation.
+# Allocates an isochronous channel.  This function may be called multiple
+# times, each time allocating an additional channel.  The channel is
+# automatically re-allocated if there is a bus reset.  The channel is
+# automatically released when this dc1394camera_t is freed or if
+# the application shuts down prematurely.  If the channel needs to persist
+# beyond the lifetime of this application, call \a dc1394_iso_set_persist()
+# first.  Note that this function does _NOT_ automatically program @a camera
+# to use the allocated channel for isochronous streaming.
+# You must do that manually using \a dc1394_video_set_iso_channel().
+_dll.dc1394_iso_allocate_channel.argtypes = [PTR(camera_t), c_uint64, PTR(c_int)]
+_dll.dc1394_iso_allocate_channel.restype = error_t
+_dll.dc1394_iso_allocate_channel.errcheck = _errcheck
+
+# dc1394_iso_release_channel:
+# param &camera, channel_to_release
+# Releases a previously allocated channel.  It is acceptable to release
+# channels that were allocated by a different process or host.  If attempting
+# to release a channel that is already released, the function will succeed.
+_dll.dc1394_iso_release_channel.argtypes = [PTR(camera_t), c_int]
+_dll.dc1394_iso_release_channel.restype = error_t
+_dll.dc1394_iso_release_channel.errcheck = _errcheck
+
+# dc1394_iso_allocate_bandwidth
+# param &camera, bandwidth_units
+# bandwidth_units: the number of isochronous bandwidth units to allocate
+# Allocates isochronous bandwidth.  This functions allocates bandwidth in
+# addition_ to any previous allocations.  It may be called multiple times.
+# The bandwidth is automatically re-allocated if there is a bus reset.
+# The bandwidth is automatically released if this camera is freed or the
+# application shuts down prematurely.  If the bandwidth needs to persist
+# beyond the lifetime of this application, call a
+# dc1394_iso_set_persist() first.
+_dll.dc1394_iso_allocate_bandwidth.argtypes = [PTR(camera_t), c_int]
+_dll.dc1394_iso_allocate_bandwidth.restype = error_t
+_dll.dc1394_iso_allocate_bandwidth.errcheck = _errcheck
+
+# dc1394_iso_release_bandwidth:
+# param &camera, bandwidth_units
+# Releases previously allocated isochronous bandwidth.  Each \a dc1394camera_t
+# keeps track of a running total of bandwidth that has been allocated.
+# Released bandwidth is subtracted from this total for the sake of automatic
+# re-allocation and automatic release on shutdown. It is also acceptable for a
+# camera to release more bandwidth than it has allocated (to clean up for
+# another process for example).  In this case, the running total of bandwidth
+# is not affected. It is acceptable to release more bandwidth than is
+# allocated in total for the bus.  In this case, all bandwidth is released and
+# the function succeeds.
+_dll.dc1394_iso_release_bandwidth.argtypes = [PTR(camera_t), c_int]
+_dll.dc1394_iso_release_bandwidth.restype = error_t
+_dll.dc1394_iso_release_bandwidth.errcheck = _errcheck
+
+# dc1394_iso_release_all:
+# Releases all channels and bandwidth that have been previously allocated for
+# this dc1394camera_t.  Note that this information can only be tracked per
+# process, and there is no knowledge of allocations for this camera by
+# previous processes.  To release resources in such a case, the manual release
+# functions \a dc1394_iso_release_channel() and a
+# dc1394_iso_release_bandwidth() must be used.
+_dll.dc1394_iso_release_all.argtypes = [PTR(camera_t)]
+_dll.dc1394_iso_release_all.restype = error_t
+_dll.dc1394_iso_release_all.errcheck = _errcheck
