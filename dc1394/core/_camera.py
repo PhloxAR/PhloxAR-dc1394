@@ -24,7 +24,7 @@
 from __future__ import unicode_literals
 from ctypes import c_int, c_uint16, c_uint32, c_uint64, c_char_p
 from ctypes import POINTER, Structure
-from phlox1394._types import VIDEO_MODE_FORMAT7_NUM, bool_t
+from ._types import VIDEO_MODE_FORMAT7_NUM, bool_t
 
 # List of IIDC versions.
 # Currently, the following versions exist: 1.04, 1.20, PTGREY, 1.30 and 1.31
@@ -100,7 +100,7 @@ class camera_t(Structure):
         ('PIO_control_csr', c_uint64),
         ('SIO_control_csr', c_uint64),
         ('strobe_control_csr', c_uint64),
-        ('fromat7_csr', (c_uint64) * VIDEO_MODE_FORMAT7_NUM),
+        ('format7_csr', c_uint64 * VIDEO_MODE_FORMAT7_NUM),
         ('iidc_version', iidc_version_t),
         ('vendor', c_char_p),
         ('model', c_char_p),

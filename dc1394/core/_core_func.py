@@ -29,14 +29,14 @@ from __future__ import division, print_function, unicode_literals
 from ctypes import *
 from ctypes.util import find_library
 from ctypes import POINTER as PTR
-from phlox1394._camera import *
-from phlox1394._capture import *
-from phlox1394._convesions import *
-from phlox1394._control import *
-from phlox1394._format7 import *
-from phlox1394._log import *
-from phlox1394._types import *
-from phlox1394._video import *
+from ._camera import *
+from ._capture import *
+from ._conversions import *
+from ._control import *
+from ._format7 import *
+from ._log import *
+from ._types import *
+from ._video import *
 
 # REMINDER:
 #  By default the ctypes API does not know or care about how a dll function

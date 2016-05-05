@@ -2,7 +2,7 @@
 #
 # -*- coding: utf-8 -*-
 #
-# phlox-libdc1394/phlox1394/_coversions.py
+# phlox-libdc1394/phlox1394/_conversions.py
 #
 # Copyright (C) 2016, by Matthias Yang Chen <matthias_cy@outlook.com>
 # All rights reserved.

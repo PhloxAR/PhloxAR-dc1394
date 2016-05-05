@@ -27,8 +27,8 @@ Functions related to video modes, formats, framerate and video flow.
 
 from ctypes import c_int, c_uint32, c_void_p, c_uint64
 from ctypes import POINTER, Structure
-from phlox1394._types import color_coding_t, color_filter_t, video_mode_t, bool_t
-from phlox1394._camera import camera_t
+from ._types import color_coding_t, color_filter_t, video_mode_t, bool_t
+from ._camera import camera_t
 
 # Enumeration of iso data speeds.
 # Most (if not all) cameras are compatible with 400Mbps speed. Only older
@@ -100,7 +100,7 @@ class framerates_t(Structure):
 # Video frame structure.
 # video_frame_t is the structure returned by the capture functions.
 # It contains the captured image as well as a number of information.
-class vidoe_frame_t(Structure):
+class video_frame_t(Structure):
     _fields_ = [
         ('image', c_void_p),  # unsigned char*
         ('size', c_uint32 * 2),
@@ -116,7 +116,7 @@ class vidoe_frame_t(Structure):
         ('packets_per_frame', c_uint32),
         ('timestamp', c_uint64),
         ('frames_behind', c_uint32),
-        ('camera', POINTER(camera_t))
+        ('camera', POINTER(camera_t)),
         ('id', c_uint32),
         ('allocated_image_bytes', c_uint64),
         ('little_endian', bool_t),

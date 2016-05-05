@@ -26,7 +26,7 @@ Functions to log errors, warning and debug messages.
 """
 
 from ctypes import c_int
-from phlox1394._types import invert
+from ._types import invert
 
 # Error codes.
 # General rule: 0 is success, negative denotes a problem.

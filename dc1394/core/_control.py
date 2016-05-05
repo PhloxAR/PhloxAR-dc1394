@@ -27,7 +27,7 @@ Libdc1394-control.h wrapper.
 
 from __future__ import unicode_literals
 from ctypes import c_int, c_uint32, c_float, Structure
-from phlox1394._types import bool_t, switch_t
+from ._types import bool_t, switch_t
 
 # Enumeration of trigger modes.
 trigger_modes = {
