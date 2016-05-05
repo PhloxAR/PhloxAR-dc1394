@@ -2,7 +2,7 @@
 #
 # -*- coding: utf-8 -*-
 #
-# phlox-libdc1394/phlox1394/_format7.py
+# phlox-libdc1394/dc1394/core/_format7.py
 #
 # Copyright (C) 2016, by Matthias Yang Chen <matthias_cy@outlook.com>
 # All rights reserved.
@@ -30,6 +30,10 @@ from ctypes import c_uint32, c_uint64, Structure
 from ._types import bool_t, color_coding_t, color_codings_t, color_filter_t
 from ._types import VIDEO_MODE_FORMAT7_NUM
 
+__all__ = [
+    'QUERY_FROM_CAMERA', 'USE_MAX_AVAIL', 'USE_RECOMMANDED', 'format7mode_t',
+    'format7modeset_t'
+]
 
 QUERY_FROM_CAMERA = -1
 USE_MAX_AVAIL = -2

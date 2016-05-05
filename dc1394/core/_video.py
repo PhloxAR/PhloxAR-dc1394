@@ -2,7 +2,7 @@
 #
 # -*- coding: utf-8 -*-
 #
-# phlox-libdc1394/phlox1394/_video.py
+# phlox-libdc1394/dc1394/core/_video.py
 #
 # Copyright (C) 2016, by Matthias Yang Chen <matthias_cy@outlook.com>
 # All rights reserved.
@@ -25,10 +25,18 @@
 Functions related to video modes, formats, framerate and video flow.
 """
 
+from __future__ import unicode_literals
 from ctypes import c_int, c_uint32, c_void_p, c_uint64
 from ctypes import POINTER, Structure
 from ._types import color_coding_t, color_filter_t, video_mode_t, bool_t
 from ._camera import camera_t
+
+__all__ = [
+    'iso_speeds', 'iso_speed_t', 'ISO_SPEED_MAX', 'ISO_SPEED_MIN', 'ISO_SPEED_NUM',
+    'framerates', 'framerate_t', 'framerates_t', 'FRAMERATE_MAX', 'FRAMERATE_MIN',
+    'FRAMERATE_NUM', 'operation_modes', 'operation_mode_t', 'OPERATION_MODE_MAX',
+    'OPERATION_MODE_MIN', 'OPERATION_MODE_NUM', 'video_frame_t'
+]
 
 # Enumeration of iso data speeds.
 # Most (if not all) cameras are compatible with 400Mbps speed. Only older
