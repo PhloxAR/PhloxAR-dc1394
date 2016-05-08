@@ -36,7 +36,7 @@ __all__ = [
     'color_filter_t', 'color_filters', 'COLOR_FILTER_MAX', 'COLOR_FILTER_MIN',
     'COLOR_FILTER_NUM', 'byte_order_t', 'byte_orders', 'BYTE_ORDER_MAX',
     'BYTE_ORDER_MIN', 'BYTE_ORDER_NUM', 'color_codings_t', 'video_modes_t',
-    'bool_t', 'switch_t'
+    'bool_t', 'switch_t', 'invert'
 ]
 
 # --------------------------------- enums ------------------------------------
