@@ -207,7 +207,7 @@ BYTE_ORDER_NUM = BYTE_ORDER_MAX - BYTE_ORDER_MIN + 1
 class color_codings_t(Structure):
     _fields_ = [
         ('num', c_uint32),
-        ('codings', (color_coding_t) * COLOR_CODING_NUM),
+        ('codings', color_coding_t * COLOR_CODING_NUM),
     ]
 
 
@@ -215,10 +215,8 @@ class color_codings_t(Structure):
 class video_modes_t(Structure):
     _fields_ = [
         ('num', c_uint32),
-        ('modes', (video_mode_t) * VIDEO_MODE_NUM),
+        ('modes', video_mode_t * VIDEO_MODE_NUM),
     ]
 
 bool_t = c_int
 switch_t = c_int
-
-del invert
