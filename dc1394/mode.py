@@ -177,3 +177,9 @@ mode_map = {
     94: Format7,
     95: Format7,
 }
+
+
+def create_mode(cam, m):
+    if isinstance(m, tuple):
+        m = "%sx%s_%s" % m
+    return Mode(cam, video_modes[m])
