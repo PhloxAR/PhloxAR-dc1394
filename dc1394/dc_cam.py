@@ -2,27 +2,27 @@
 
 from __future__ import division, print_function
 from __future__ import absolute_import, unicode_literals
-from ctypes import pointer, byref, POINTER, c_char, c_uint32, c_float, c_int
+from ctypes import byref, POINTER, c_char, c_uint32, c_float, c_int
 from numpy import fromstring, ndarray
 from threading import Thread, Lock, Condition
-from Queue import Queue, Full
+from Queue import Queue
 
 from .core import *
 from .mode import mode_map, create_mode
 
 
-class DC1394Error(Exception):
+class DCError(Exception):
     """
     Base class for exceptions.
     """
     pass
 
 
-class DC1394CameraError(DC1394Error, RuntimeError):
+class DCCameraError(DCError, RuntimeError):
     pass
 
 
-class DC1394Library(object):
+class DCLibrary(object):
     """
     This wraps the dc1394 library object which is a nuisance to have around.
     This is bad design on behave of DC1394. Oh well... This object must stay
@@ -96,7 +96,7 @@ class DC1394Library(object):
         return clist
 
 
-class DC1394Image(ndarray):
+class DCImage(ndarray):
     """
     This class is the image returned by the camera. It is basically a
     numpy array with some additional information (like timestamps).
@@ -161,7 +161,7 @@ class DC1394Image(ndarray):
         return self._id
 
 
-class _CamAcquisitionThread(Thread):
+class _DCCamAcquisitionThread(Thread):
     """
     This class is created and launched whenever a camera is start.
     It continuously acquires the pictures from the camera and sets
@@ -176,7 +176,7 @@ class _CamAcquisitionThread(Thread):
     _abort_lock = None
 
     def __init__(self, cam, condition):
-        super(_CamAcquisitionThread, self).__init__()
+        super(_DCCamAcquisitionThread, self).__init__()
         self._cam = cam
         self._should_abort = False
         self._last_frame = None
@@ -202,7 +202,8 @@ class _CamAcquisitionThread(Thread):
                 break
 
             if self._last_frame:
-                self._cam.dll.dc1394_capture_enqueue(self._cam.cam, self._last_frame)
+                self._cam.dll.dc1394_capture_enqueue(self._cam.cam,
+                                                     self._last_frame)
 
             frame = POINTER(video_frame_t)()
             self._cam.dll.dc1394_capture_dequeue(
@@ -218,7 +219,7 @@ class _CamAcquisitionThread(Thread):
             # generate an Image class from the buffer
             img = fromstring(buf, dtype=self._cam.mode.dtype).reshape(
                 self._cam.mode.shape
-            ).view(DC1394Image)
+            ).view(DCImage)
 
             img._position = frame.contents.position
             img._packet_size = frame.contents.packet_size,
@@ -238,16 +239,17 @@ class _CamAcquisitionThread(Thread):
 
         # return the last frame
         if self._last_frame:
-            self._cam.dll.dc1394_capture_enqueue(self._cam.cam, self._last_frame)
+            self._cam.dll.dc1394_capture_enqueue(self._cam.cam,
+                                                 self._last_frame)
         self._last_frame = None
 
 
-class DC1394CameraProperty(object):
+class DCCameraProperty(object):
     """
     This class implements a simple Property of the camera.
     """
-    def __init__(self, cam, name, id, absolute_capable):
-        self._id = id
+    def __init__(self, cam, name, cid, absolute_capable):
+        self._id = cid
         self._name = name
         self._absolute_capable = absolute_capable
         self._dll = cam.dll
@@ -334,7 +336,8 @@ class DC1394CameraProperty(object):
         Can this property be disabled
         """
         k = bool_t()
-        self._dll.dc1394_feature_is_switchable(self._cam.cam, self._id, byref(k))
+        self._dll.dc1394_feature_is_switchable(self._cam.cam, self._id,
+                                               byref(k))
         return bool(k.value)
 
     @property
@@ -350,7 +353,8 @@ class DC1394CameraProperty(object):
                     self._cam.cam, byref(k)
             )
         else:
-            self._dll.dc1394_feature_get_power(self._cam.cam, self._id, byref(k))
+            self._dll.dc1394_feature_get_power(self._cam.cam, self._id,
+                                               byref(k))
         return bool(k.value)
 
     @on.setter
@@ -375,7 +379,8 @@ class DC1394CameraProperty(object):
 
             return [trigger_modes[modes.modes[i]] for i in range(modes.num)]
         modes = feature_modes_t()
-        self._dll.dc1394_feature_get_modes(self._cam.cam, self._id, byref(modes))
+        self._dll.dc1394_feature_get_modes(self._cam.cam, self._id,
+                                           byref(modes))
         return [feature_modes[modes.modes[i]] for i in range(modes.num)]
 
     @property
@@ -408,7 +413,8 @@ class DC1394CameraProperty(object):
             """
         if self._name.lower() == "trigger":
             mode = trigger_mode_t()
-            self._dll.dc1394_external_trigger_get_mode(self._cam.cam, byref(mode))
+            self._dll.dc1394_external_trigger_get_mode(self._cam.cam,
+                                                       byref(mode))
             return trigger_modes[mode.value]
 
         mode = feature_mode_t()
@@ -447,8 +453,9 @@ class DC1394CameraProperty(object):
         camera.trigger.pos_polarities.
         """
         pol = trigger_polarity_t()
-        self._dll.dc1394_external_trigger_get_polarity(self._cam.cam, byref(pol))
-        if trigger_polarities.has_key(pol.value):
+        self._dll.dc1394_external_trigger_get_polarity(self._cam.cam,
+                                                       byref(pol))
+        if pol.value in trigger_polarities:
             return trigger_polarities[pol.value]
         else:
             return pol.value
@@ -456,7 +463,7 @@ class DC1394CameraProperty(object):
     @polarity.setter
     def polarity(self, pol):
         if self.polarity_capable:
-            if trigger_polarities.has_key(pol):
+            if pol in trigger_polarities:
                 key = trigger_polarities[pol]
                 self._dll.dc1394_external_trigger_set_polarity(
                         self._cam.cam, key
@@ -473,23 +480,25 @@ class DC1394CameraProperty(object):
         Actual source of the external trigger
         """
         source = trigger_source_t()
-        self._dll.dc1394_external_trigger_get_source(self._cam.cam, byref(source))
+        self._dll.dc1394_external_trigger_get_source(self._cam.cam,
+                                                     byref(source))
         return trigger_sources[source.value]
 
     @source.setter
     def source(self, src):
-        if trigger_sources.has_key(src):
+        if src in trigger_sources:
             key = trigger_sources[src]
             self._dll.dc1394_external_trigger_set_source(self._cam.cam, key)
         else:
             print("Invalid external trigger source: %s" % src)
 
     def pos_sources(self):
-        """ List the possible external trigger sources of the camera"""
+        """
+        List the possible external trigger sources of the camera
+        """
         src = trigger_sources_t()
         self._dll.dc1394_external_trigger_get_supported_sources(self._cam.cam,
-                                                           byref(src)
-                                                           )
+                                                                byref(src))
         return [trigger_sources[src.sources[i]] for i in range(src.num)]
 
     @property
@@ -507,7 +516,7 @@ class DC1394CameraProperty(object):
         self._dll.dc1394_software_trigger_set_power(self._cam.cam, k)
 
 
-class DC1394Camera(object):
+class DCCamera(object):
     """
     This class represents a IEEE1394 Camera on the BUS. It currently
     supports all features of the cameras except white balancing.
@@ -525,7 +534,7 @@ class DC1394Camera(object):
     also use the first acquisition mode here, but this seldom makes
     sense since you need a processing of the pictures anyway.
     :arg lib:        the library to open the camera for
-    :type lib:       :class:`~DC1394Library`
+    :type lib:       :class:`~DCLibrary`
     :arg guid:       GUID of this camera. Can be a hexstring or the integer
                      value
     :arg mode:       acquisition mode, e.g. (640, 480, "Y8"). If you pass None,
@@ -552,8 +561,6 @@ class DC1394Camera(object):
     _worker = None
     _queue = None
     _features = None
-    _new_image = None
-    _current_img = None
     _operation_mode = None
     _all_modes = None
     _all_features = None
@@ -561,13 +568,14 @@ class DC1394Camera(object):
     _frames_behind = None
     _abort_lock = None
     _absolute_capable = None
-    _handle = None
+    _framerate = None
 
-    def __init__(self, lib, guid, mode=None, framerate=None, isospeed=400, **feat):
+    def __init__(self, lib, guid, mode=None, framerate=None,
+                 isospeed=400, **feat):
         self._lib = lib
 
         if isinstance(guid, str):
-            guid = int(guid,16)
+            guid = int(guid, 16)
 
         self._guid = guid
         self._cam = None
@@ -581,6 +589,8 @@ class DC1394Camera(object):
         self._new_image = Condition()
         self._current_img = None
         self._worker = None
+
+        self._framerate = framerate
 
         self.open()
 
@@ -599,27 +609,27 @@ class DC1394Camera(object):
             # we set a standard mode.
             self.mode = tuple(mode) if mode is not None else self.modes[0]
 
-            #set the framerate:
-            self.fps = self.mode.framerates[-1]
+            # set the framerate:
+            self.fps = self._mode.framerates[-1]
 
             try:
-                self.framerate.mode = "auto"
+                self._framerate.mode = "auto"
             except AttributeError:
-                pass # Feature not around, so what?
+                pass  # Feature not around, so what?
 
             # Set isospeed
-            if isospeed :
+            if isospeed:
                 # If the speed is >= 800, set other operation mode
-                #this is done automatically by the isospeed setting
+                # this is done automatically by the isospeed setting
                 # self._operation_mode = "legacy" if isospeed < 800 else "1394b"
                 self.isospeed = isospeed
 
             # Set other parameters
-            for n,v in feat.items():
+            for n, v in feat.items():
                 if v is None:
                     continue
                 self.__getattribute__(n).val = v
-        except DC1394CameraError:
+        except DCCameraError:
             self.close()
             raise
 
@@ -640,15 +650,10 @@ class DC1394Camera(object):
             return
 
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
-        # Set video mode and everything: done by the actual fsets in
-        #self.mode, self.isospeed and self.fps
-        #self._dll.dc1394_video_set_iso_speed( self._cam, self._wanted_speed )
-        #self._dll.dc1394_video_set_mode( self._cam, self._wanted_mode )
-        #self._dll.dc1394_video_set_framerate( self._cam, self._wanted_frate )
-        self._dll.dc1394_capture_setup( self._cam, bufsize,
-                                        capture_flags["CAPTURE_FLAGS_DEFAULT"])
+        self._dll.dc1394_capture_setup(self._cam, bufsize,
+                                       capture_flags["CAPTURE_FLAGS_DEFAULT"])
 
         # Start the acquisition
         self._dll.dc1394_video_set_transmission(self._cam, 1)
@@ -656,7 +661,7 @@ class DC1394Camera(object):
         self._queue = None if interactive else Queue(1000)
 
         # Now, start the Worker thread
-        self._worker = _CamAcquisitionThread(self, self._new_image)
+        self._worker = _DCCamAcquisitionThread(self, self._new_image)
 
         self._running_lock.acquire()
         self._running = True
@@ -712,9 +717,9 @@ class DC1394Camera(object):
         for visualisation.
         """
         if not self.running:
-            raise DC1394CameraError("Camera is not running!")
+            raise DCCameraError("Camera is not running!")
         if not self._queue:
-            raise DC1394CameraError("Camera is running in interactive mode!")
+            raise DCCameraError("Camera is running in interactive mode!")
 
         return self._queue.get()
 
@@ -724,7 +729,7 @@ class DC1394Camera(object):
         """
         self._cam = self._dll.dc1394_camera_new(self._lib.handle, self._guid)
         if not self._cam:
-            raise DC1394CameraError("Couldn't access camera!")
+            raise DCCameraError("Couldn't access camera!")
 
     def close(self):
         """Close the camera. Stops it, if it was running"""
@@ -746,7 +751,7 @@ class DC1394Camera(object):
         Returns:    list of available video modes
         """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         modes = video_modes_t()
 
@@ -763,12 +768,10 @@ class DC1394Camera(object):
         list
         """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         fs = featureset_t()
         self._dll.dc1394_feature_get_all(self._cam, byref(fs))
-
-
         self._features = []
 
         # We set all features that are capable of it to absolute values
@@ -776,12 +779,12 @@ class DC1394Camera(object):
             s = fs.feature[i]
             if s.available:
                 if s.absolute_capable:
-                    self._dll.dc1394_feature_set_absolute_control(self._cam, s.id, 1)
+                    self._dll.dc1394_feature_set_absolute_control(self._cam,
+                                                                  s.id, 1)
                 name = features[s.id]
                 self._features.append(name)
-                self.__dict__[name] = DC1394CameraProperty(self, name, s.id,
-                                                           s.absolute_capable
-                                                           )
+                self.__dict__[name] = DCCameraProperty(self, name, s.id,
+                                                       s.absolute_capable)
 
         return self._features
 
@@ -790,7 +793,7 @@ class DC1394Camera(object):
         Get the control register value of the camera a the given offset
         """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         val = c_uint32()
         self._dll.dc1394_get_control_registers(self._cam, offset, byref(val), 1)
@@ -802,7 +805,7 @@ class DC1394Camera(object):
         the given value
         """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         val = c_uint32(value)
         self._dll.dc1394_set_control_registers(self._cam, offset, byref(val), 1)
@@ -834,7 +837,7 @@ class DC1394Camera(object):
                 cameras that should support it. So use on your own risk!
         """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         k = bool_t()
         self._dll.dc1394_camera_get_broadcast(self._cam, byref(k))
@@ -846,7 +849,7 @@ class DC1394Camera(object):
     @broadcast.setter
     def broadcast(self, value):
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         use = 1 if value else 0
         self._dll.dc1394_camera_set_broadcast(self._cam, use)
@@ -865,7 +868,9 @@ class DC1394Camera(object):
 
     @property
     def new_image(self):
-        "The Condition to wait for when you want a new Image"
+        """
+        The Condition to wait for when you want a new Image
+        """
         return self._new_image
 
     @property
@@ -881,25 +886,31 @@ class DC1394Camera(object):
 
     @property
     def model(self):
-        "The name of this camera (string)"
+        """
+        The name of this camera (string)
+        """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         return self._cam.contents.model
 
     @property
     def guid(self):
-        "The Guid of this camera as string"
+        """
+        The Guid of this camera as string
+        """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         return hex(self._cam.contents.guid)[2:-1]
 
     @property
     def vendor(self):
-        "The vendor of this camera (string)"
+        """
+        The vendor of this camera (string)
+        """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         return self._cam.contents.vendor
 
@@ -930,7 +941,7 @@ class DC1394Camera(object):
             try:
                 mode = create_mode(self._cam, mode)
             except KeyError:
-                raise DC1394CameraError("Invalid mode for this camera!")
+                raise DCCameraError("Invalid mode for this camera!")
         self._mode = mode
         self._dll.dc1394_video_set_mode(self._cam, mode.mode_id)
 
@@ -980,18 +991,18 @@ class DC1394Camera(object):
 
     @isospeed.setter
     def isospeed(self, speed):
-        if iso_speeds.has_key(speed):
+        if speed in iso_speeds:
             try:
                 self._operation_mode = 'legacy' if speed < 800 else '1394b'
             except RuntimeError:
-                raise DC1394CameraError(
+                raise DCCameraError(
                         "1394b mode is not supported by hardware, but needed!"
                 )
             else:
                 sp = iso_speeds[speed]
                 self._dll.dc1394_video_set_iso_speed(self._cam, sp)
         else:
-            raise DC1394CameraError("Invalid isospeed: %s" % speed)
+            raise DCCameraError("Invalid isospeed: %s" % speed)
 
     @property
     def operation_mode(self):
@@ -1001,7 +1012,7 @@ class DC1394Camera(object):
         this as a user.
         """
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         k = c_int()
         self._dll.dc1394_video_get_operation_mode(self._cam, byref(k))
@@ -1013,7 +1024,7 @@ class DC1394Camera(object):
     @operation_mode.setter
     def operation_mode(self, value):
         if not self._cam:
-            raise DC1394CameraError("The camera is not opened!")
+            raise DCCameraError("The camera is not opened!")
 
         use = 480 if value == "legacy" else 481
         self._dll.dc1394_video_set_operation_mode(self._cam, use)
